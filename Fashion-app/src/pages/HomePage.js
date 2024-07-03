@@ -1,34 +1,35 @@
 import React from 'react';
-import { StyleSheet, View, Image, Text, FlatList } from 'react-native';
+import { StyleSheet, View, Image, Text, FlatList, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 
 const catalogueData = [
   {
     id: '1',
     items: [
-      { source: require('../../assets/dress1.png'), label: 'Office Wear', description: "reversible angora cardigan", price: "$120" },
-      { source: require('../../assets/dress2.png'), label: 'Black', description: 'reversible angora cardigan', price: '$120' },
+      { id: 1, source: require('../../assets/dress1.png'), label: 'Office Wear', description: "reversible angora cardigan", price: "$120" },
+      { id: 2, source: require('../../assets/dress2.png'), label: 'Black', description: 'reversible angora cardigan', price: '$120' },
     ],
   },
   {
     id: '2',
     items: [
-      { source: require('../../assets/dress3.png'), label: 'Church Wear', description: "reversible angora cardigan", price: "$120" },
-      { source: require('../../assets/dress4.png'), label: 'Lamerei', description: 'reversible angora cardigan', price: '$120' },
+      { id: 3, source: require('../../assets/dress3.png'), label: 'Church Wear', description: "reversible angora cardigan", price: "$120" },
+      { id: 4, source: require('../../assets/dress4.png'), label: 'Lamerei', description: 'reversible angora cardigan', price: '$120' },
     ],
   },
   {
     id: '3',
     items: [
-      { source: require('../../assets/dress5.png'), label: '21Wn', description: "reversible angora cardigan", price: "$120" },
-      { source: require('../../assets/dress6.png'), label: 'Lopo', description: 'reversible angora cardigan', price: '$120' },
+      { id: 5, source: require('../../assets/dress5.png'), label: '21Wn', description: "reversible angora cardigan", price: "$120" },
+      { id: 6, source: require('../../assets/dress6.png'), label: 'Lopo', description: 'reversible angora cardigan', price: '$120' },
     ],
   },
   {
     id: '4',
     items: [
-      { source: require('../../assets/dress7.png'), label: '21Wn', description: "reversible angora cardigan", price: "$120" },
-      { source: require('../../assets/dress1.png'), label: 'Lame', description: 'reversible angora cardigan', price: '$120' },
+      { id: 7, source: require('../../assets/dress7.png'), label: '21Wn', description: "reversible angora cardigan", price: "$120" },
+      { id: 8, source: require('../../assets/dress1.png'), label: 'Lame', description: 'reversible angora cardigan', price: '$120' },
     ],
   },
 ];
@@ -37,19 +38,59 @@ export const HomeScreen = () => {
 
     const navigation = useNavigation();
 
+    const addToCart = async (product) => {
+        
+        try {
+            const cartItems = await AsyncStorage.getItem('cartItems');
+            if(cartItems == null){
+                await AsyncStorage.setItem('cartItems', JSON.stringify(product));
+            }else{
+                let arrayItem;
+                arrayItem = JSON.parse(cartItems);
+                if (!Array.isArray(arrayItem)) {
+                    arrayItem = Array(arrayItem);
+                }
+
+                const itemFound = arrayItem.filter(item => item.id == product.id);
+                if (itemFound.length > 0) {
+                    console.log("Product already exists. No need to save it again");
+                }else{
+                    arrayItem.push(product);
+                    await AsyncStorage.setItem('cartItems', JSON.stringify(arrayItem));
+                }
+            }
+
+
+        } catch (e) {
+            // saving error
+            console.error(e);
+        }
+    }
+
+
+    const navigateToCart = () => {
+        navigation.navigate('Checkout');
+    }
+
+
+
+
     const renderItem = ({ item }) => (
       <View style={styles.catalogueRow}>
-        {item.items.map((dress, index) => (
+        {item.items.map((product, index) => (
           <View key={index}>
             <View>
-                <Image style={styles.images} source={dress.source} />
-                <Image style={styles.addToCart} source={require('../../assets/add_circle.png')}/>
+                <Image style={styles.images} source={product.source} />
+                
+                <TouchableOpacity onPress={() => addToCart(product)}>
+                    <Image style={styles.addToCart} source={require('../../assets/add_circle.png')}/>
+                </TouchableOpacity>
             </View>  
 
             <View style={styles.imageWriting}>
-                {dress.label && <Text style={styles.imageLabel}>{dress.label}</Text>}
-                {dress.description && <Text style={styles.imageDescription}>{dress.description}</Text>}
-                {dress.price && <Text style={styles.imagePrice}>{dress.price}</Text>}
+                {product.label && <Text style={styles.imageLabel}>{product.label}</Text>}
+                {product.description && <Text style={styles.imageDescription}>{product.description}</Text>}
+                {product.price && <Text style={styles.imagePrice}>{product.price}</Text>}
             </View> 
             
           </View>
@@ -57,53 +98,54 @@ export const HomeScreen = () => {
       </View>
     );
 
-  return (
-    <View style={styles.container}>
-        <View style={styles.headerImages}>
-            <Image source={require('../../assets/Menu.png')} />
+    return (
+        <View style={styles.container}>
+            <View style={styles.headerImages}>
+                <Image source={require('../../assets/Menu.png')} />
 
-            <Image source={require('../../assets/Logo.png')}/>
+                <Image source={require('../../assets/Logo.png')}/>
 
-            <View style={styles.innerImages}>
-            <Image 
-              source={require('../../assets/Search.png')}
-            />
-            <Image 
-              style={styles.shoppingBagImage}
-              source={require('../../assets/shoppingBag.png')}
-            />
-            </View>
-
-          </View>
-
-          <View style={styles.secondHeader}>
-            <Text style={styles.secondHeaderText}>OUR STORY</Text>
-
-            <View style={styles.secondInnerImage}>
-              <View style={styles.background}>
-                <Image source={require('../../assets/Listview.png')}/>
-              </View>
-              
-              <View style={styles.background}>
+                <View style={styles.innerImages}>
                 <Image 
-                  style={styles.filterImage}
-                  source={require('../../assets/Filter.png')}
+                source={require('../../assets/Search.png')}
                 />
-              </View>
-              
-            </View>
-            
-          </View>
+                
+                <TouchableOpacity onPress={() => navigateToCart()}>
+                    <Image style={styles.shoppingBagImage} source={require('../../assets/shoppingBag.png')}/>
+                </TouchableOpacity>
 
-          <FlatList
-            data={catalogueData}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.catalogue}
-          />
-          
-    </View>
-  );
+                </View>
+
+            </View>
+
+            <View style={styles.secondHeader}>
+                <Text style={styles.secondHeaderText}>OUR STORY</Text>
+
+                <View style={styles.secondInnerImage}>
+                <View style={styles.background}>
+                    <Image source={require('../../assets/Listview.png')}/>
+                </View>
+                
+                <View style={styles.background}>
+                    <Image 
+                    style={styles.filterImage}
+                    source={require('../../assets/Filter.png')}
+                    />
+                </View>
+                
+                </View>
+                
+            </View>
+
+            <FlatList
+                data={catalogueData}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.catalogue}
+            />
+            
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
